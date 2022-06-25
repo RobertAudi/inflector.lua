@@ -1,0 +1,195 @@
+local M = {}
+
+local next = next
+
+local function is_blank(item)
+  return item == nil
+    and ((type(item) == "string" and string.match(item, "%S") == nil) or (thing_type == "table" and next(item) == nil))
+end
+
+M.rules = {
+  uncountable = {
+    "equipment",
+    "fish",
+    "info",
+    "information",
+    "jeans",
+    "money",
+    "police",
+    "rice",
+    "series",
+    "sheep",
+    "species",
+  },
+
+  irregular = {
+    { singular = "alumnus", plural = "alumni" },
+    { singular = "child", plural = "children" },
+    { singular = "goose", plural = "geese" },
+    { singular = "man", plural = "men" },
+    { singular = "move", plural = "moves" },
+    { singular = "person", plural = "people" },
+    { singular = "sex", plural = "sexes" },
+    { singular = "virus", plural = "viruses" },
+    { singular = "zombie", plural = "zombies" },
+  },
+
+  plural = {
+    { pattern = "(.+)$", substitution = "%1s" },
+    { pattern = "(.+)s$", substitution = "%1s" },
+    { pattern = { "^([aA]x)is$", "^([tT]est)is$" }, substitution = "%1es" },
+    { pattern = { "(.*)(octop)us$", "(.*)(vir)us$" }, substitution = "%1%2i" },
+    { pattern = { "(.*)(octop)i$", "(.*)(vir)i$" }, substitution = "%1%2i" },
+    { pattern = { "(.*)(alias)$", "(.*)(status)$" }, substitution = "%1%2es" },
+    { pattern = "(.*)(bu)s$", substitution = "%1%2ses" },
+    { pattern = { "(.*)(tomat)o$", "(.*)(tomat)o$" }, substitution = "%1%2oes" },
+    { pattern = "(.*)([ti])um$", substitution = "%1%2a" },
+    { pattern = "(.*)([ti])a$", substitution = "%1%2a" },
+    { pattern = "(.*)sis$", substitution = "%1ses" },
+    { pattern = { "(.*)([^f])fe$", "(.*)([lr])f$" }, substitution = "%1%2%3ves" },
+    { pattern = "(.*)(hive)$", substitution = "%1%2s" },
+    { pattern = { "(.*)([^aeiouy])y$", "(.*)(qu)y$" }, substitution = "%1%2ies" },
+    { pattern = { "(.*)(x)$", "(.*)(ch)$", "(.*)(ss)$", "(.*)(sh)$" }, substitution = "%1%2es" },
+    {
+      pattern = { "(.*)(matr)ix$", "(.*)(matr)ex$", "(.*)(vert)ix$", "(.*)(vert)ex$", "(.*)(ind)ix$", "(.*)(ind)ex$" },
+      substitution = "%1%2ices",
+    },
+    { pattern = { "^([mM])ouse$", "^([lL])ouse$" }, substitution = "%1ice" },
+    { pattern = { "^([mM])ice$", "^([lL])ice$" }, substitution = "%1ice" },
+    { pattern = "^([oO]x)$", substitution = "%1en" },
+    { pattern = "^([oO]xen)$", substitution = "%1" },
+    { pattern = "(.*)(quiz)$", substitution = "%1%2zes" },
+  },
+
+  singular = {
+    { pattern = "(.*)s$", substitution = "%1" },
+    { pattern = "(.*)(ss)$", substitution = "%1%2" },
+    { pattern = "(.*)(n)ews$", substitution = "%1%2ews" },
+    { pattern = "(.*)([ti])a$", substitution = "%1%2um" },
+    {
+      pattern = {
+        "(.*)(analy)sis$",
+        "(.*)(analy)ses$",
+        "(.*)(ba)sis$",
+        "(.*)(ba)ses$",
+        "(.*)(diagno)sis$",
+        "(.*)(diagno)ses$",
+        "(.*)(parenthe)sis$",
+        "(.*)(parenthe)ses$",
+        "(.*)(progno)sis$",
+        "(.*)(progno)ses$",
+        "(.*)(synop)sis$",
+        "(.*)(synop)ses$",
+        "(.*)(the)sis$",
+        "(.*)(the)ses$",
+      },
+      substitution = "%1%2sis",
+    },
+    { pattern = { "^([aA]naly)sis$", "^([aA]naly)ses$" }, substitution = "%1sis" },
+    { pattern = "(.*)([^f])ves$", substitution = "%1%2fe" },
+    { pattern = "(.*)(hive)s$", substitution = "%1%2" },
+    { pattern = "(.*)(tive)s$", substitution = "%1%2" },
+    { pattern = "(.*)([lr])ves$", substitution = "%1%2f" },
+    { pattern = { "(.*)([^aeiouy])ies$", "(.*)(qu)ies$" }, substitution = "%1%2y" },
+    { pattern = "(.*)(s)eries$", substitution = "%1%2eries" },
+    { pattern = "(.*)(m)ovies$", substitution = "%1%2ovie" },
+    { pattern = { "(.*)(x)es$", "(.*)(ch)es$", "(.*)(ss)es$", "(.*)(sh)es$" }, substitution = "%1%2" },
+    { pattern = { "^([mM])ice$", "^([lL])ice$" }, substitution = "%1ouse" },
+    { pattern = "(.*)(bus)(es)?$", substitution = "%1%2" },
+    { pattern = "(.*)(o)es$", substitution = "%1%2" },
+    { pattern = "(.*)(shoe)s$", substitution = "%1%2" },
+    { pattern = { "(.*)(cris)is$", "(.*)(cris)es$", "(.*)(test)is$", "(.*)(test)es$" }, substitution = "%1%2is" },
+    { pattern = "^([aA])x[ie]s$", substitution = "%1xis" },
+    { pattern = { "(.*)(octop)us$", "(.*)(octop)i$", "(.*)(vir)us$", "(.*)(vir)i$" }, substitution = "%1%2us" },
+    { pattern = { "(.*)(alias)(es)?$", "(.*)(status)(es)?$" }, substitution = "%1%2" },
+    { pattern = "^([oO]x)en", substitution = "%1" },
+    { pattern = { "(.*)(vert)ices$", "(.*)(ind)ices$" }, substitution = "%1%2ex" },
+    { pattern = "(.*)(matr)ices$", substitution = "%1%2ix" },
+    { pattern = "(.*)(quiz)zes$", substitution = "%1%2" },
+    { pattern = "(.*)(database)s$", substitution = "%1%2" },
+  },
+}
+
+local apply = function(word, inflection)
+  if type(inflection.pattern) == "table" then
+    for _, pattern in pairs(inflection.pattern) do
+      if string.match(word, pattern) then
+        return string.gsub(word, pattern, inflection.substitution)
+      end
+    end
+  elseif type(inflection.pattern) == "string" then
+    if string.match(word, inflection.pattern) then
+      return string.gsub(word, inflection.pattern, inflection.substitution)
+    end
+  end
+
+  return nil
+end
+
+local is_uncountable = function(word)
+  for _, uncountable in pairs(M.rules.uncountable) do
+    if tostring(word):lower() == uncountable then
+      return true
+    end
+  end
+
+  return false
+end
+
+M.pluralize = function(word)
+  if is_blank(word) then
+    return word
+  end
+
+  local plural = word
+
+  if is_uncountable(word) then
+    return word
+  end
+
+  for _, inflection in pairs(M.rules.irregular) do
+    if inflection.singular == word or inflection.plural == word then
+      return inflection.plural
+    end
+  end
+
+  for _, inflection in pairs(M.rules.plural) do
+    local matched = apply(word, inflection)
+
+    if matched ~= nil then
+      plural = matched
+    end
+  end
+
+  return plural
+end
+
+M.singularize = function(word)
+  if is_blank(word) then
+    return word
+  end
+
+  local singular = word
+
+  if is_uncountable(word) then
+    return word
+  end
+
+  for _, inflection in pairs(M.rules.irregular) do
+    if inflection.singular == word or inflection.plural == word then
+      return inflection.singular
+    end
+  end
+
+  for _, inflection in pairs(M.rules.singular) do
+    local matched = apply(word, inflection)
+
+    if matched ~= nil then
+      singular = matched
+    end
+  end
+
+  return singular
+end
+
+return M

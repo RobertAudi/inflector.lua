@@ -4,7 +4,7 @@ local next = next
 
 local function is_blank(item)
   return item == nil
-    and ((type(item) == "string" and string.match(item, "%S") == nil) or (thing_type == "table" and next(item) == nil))
+    and ((type(item) == "string" and string.match(item, "%S") == nil) or (type(item) == "table" and next(item) == nil))
 end
 
 M.rules = {
@@ -26,9 +26,9 @@ M.rules = {
     { singular = "alumnus", plural = "alumni" },
     { singular = "child", plural = "children" },
     { singular = "goose", plural = "geese" },
-    { singular = "man", plural = "men" },
     { singular = "move", plural = "moves" },
     { singular = "person", plural = "people" },
+    { singular = "safe", plural = "safes" },
     { singular = "sex", plural = "sexes" },
     { singular = "virus", plural = "viruses" },
     { singular = "zombie", plural = "zombies" },
@@ -41,12 +41,13 @@ M.rules = {
     { pattern = { "(.*)(octop)us$", "(.*)(vir)us$" }, substitution = "%1%2i" },
     { pattern = { "(.*)(octop)i$", "(.*)(vir)i$" }, substitution = "%1%2i" },
     { pattern = { "(.*)(alias)$", "(.*)(status)$" }, substitution = "%1%2es" },
-    { pattern = "(.*)(bu)s$", substitution = "%1%2ses" },
-    { pattern = { "(.*)(tomat)o$", "(.*)(tomat)o$" }, substitution = "%1%2oes" },
+    { pattern = "(.*)(bus)$", substitution = "%1%2ses" },
+    { pattern = { "(.*m)an$", "(.*m)en$" }, substitution = "%1en" },
+    { pattern = { "(.*)(tomat)o$", "(.*)(buffal)o$" }, substitution = "%1%2oes" },
     { pattern = "(.*)([ti])um$", substitution = "%1%2a" },
     { pattern = "(.*)([ti])a$", substitution = "%1%2a" },
     { pattern = "(.*)sis$", substitution = "%1ses" },
-    { pattern = { "(.*)([^f])fe$", "(.*)([lr])f$" }, substitution = "%1%2%3ves" },
+    { pattern = { "(.*)([^f])fe$", "(.*)([lr])f$" }, substitution = "%1%2ves" },
     { pattern = "(.*)(hive)$", substitution = "%1%2s" },
     { pattern = { "(.*)([^aeiouy])y$", "(.*)(qu)y$" }, substitution = "%1%2ies" },
     { pattern = { "(.*)(x)$", "(.*)(ch)$", "(.*)(ss)$", "(.*)(sh)$" }, substitution = "%1%2es" },
@@ -95,13 +96,14 @@ M.rules = {
     { pattern = "(.*)(m)ovies$", substitution = "%1%2ovie" },
     { pattern = { "(.*)(x)es$", "(.*)(ch)es$", "(.*)(ss)es$", "(.*)(sh)es$" }, substitution = "%1%2" },
     { pattern = { "^([mM])ice$", "^([lL])ice$" }, substitution = "%1ouse" },
-    { pattern = "(.*)(bus)(es)?$", substitution = "%1%2" },
+    { pattern = { "(.*)(bus)$", "(.*)(bus)s?es$" }, substitution = "%1%2" },
+    { pattern = { "(.*m)en$", "(.*m)an$" }, substitution = "%1an" },
     { pattern = "(.*)(o)es$", substitution = "%1%2" },
     { pattern = "(.*)(shoe)s$", substitution = "%1%2" },
     { pattern = { "(.*)(cris)is$", "(.*)(cris)es$", "(.*)(test)is$", "(.*)(test)es$" }, substitution = "%1%2is" },
     { pattern = "^([aA])x[ie]s$", substitution = "%1xis" },
     { pattern = { "(.*)(octop)us$", "(.*)(octop)i$", "(.*)(vir)us$", "(.*)(vir)i$" }, substitution = "%1%2us" },
-    { pattern = { "(.*)(alias)(es)?$", "(.*)(status)(es)?$" }, substitution = "%1%2" },
+    { pattern = { "(.*)(alias)$", "(.*)(alias)es$", "(.*)(status)$", "(.*)(status)es$" }, substitution = "%1%2" },
     { pattern = "^([oO]x)en", substitution = "%1" },
     { pattern = { "(.*)(vert)ices$", "(.*)(ind)ices$" }, substitution = "%1%2ex" },
     { pattern = "(.*)(matr)ices$", substitution = "%1%2ix" },

@@ -1,6 +1,7 @@
 local inflector = require("inflector")
 local counters = { assertions = 0, passed = 0, failed = 0 }
 
+-- Source: https://stackoverflow.com/a/9279009/123016
 local function loadcode(code, environment)
   if setfenv and loadstring then
     local f = assert(loadstring(code))
@@ -316,3 +317,9 @@ print(
 )
 
 print("Done.")
+
+if counters.failed > 0 then
+  os.exit(1)
+else
+  os.exit(0)
+end

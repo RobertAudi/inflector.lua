@@ -1,0 +1,34 @@
+name: "Test & Lint"
+
+"on":
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        luaVersion: ["5.4.4", "luajit-2.1.0-beta3"]
+
+    steps:
+      - uses: "actions/checkout@master"
+
+      - uses: "leafo/gh-actions-lua@v9"
+        with:
+          luaVersion: "${{ matrix.luaVersion }}"
+
+      - name: "test"
+        run: |
+          ./test.sh
+
+  lint:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "StyLua"
+        uses: "JohnnyMorganz/stylua-action@1.0.0"
+        with:
+          token: "${{ secrets.STYLUA_GITHUB_TOKEN }}"
+          args: "--check ."

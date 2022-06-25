@@ -3,8 +3,9 @@ local M = {}
 local next = next
 
 local function is_blank(item)
-  return item == nil
-    and ((type(item) == "string" and string.match(item, "%S") == nil) or (type(item) == "table" and next(item) == nil))
+  return not item
+    or (type(item) == "string" and string.match(item, "%S") == nil)
+    or (type(item) == "table" and next(item) == nil)
 end
 
 M.rules = {

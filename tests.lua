@@ -237,6 +237,16 @@ assert_plural("dishes", "dishes")
 assert_singular("dishes", "dish")
 assert_singular("dish", "dish")
 
+assert_plural("fish", "fish")
+assert_singular("fish", "fish")
+assert_plural("blowfish", "blowfish")
+assert_singular("blowfish", "blowfish")
+
+assert_plural("deer", "deer")
+assert_singular("deer", "deer")
+assert_plural("raindeer", "raindeer")
+assert_singular("raindeer", "raindeer")
+
 assert_plural("matrix", "matrices")
 assert_plural("matrices", "matrices")
 assert_singular("matrices", "matrix")

@@ -1,13 +1,5 @@
 local M = {}
 
-local next = next
-
-local function is_blank(item)
-  return not item
-    or (type(item) == "string" and string.match(item, "%S") == nil)
-    or (type(item) == "table" and next(item) == nil)
-end
-
 M.rules = {
   uncountable = {
     "advice",
@@ -193,7 +185,9 @@ local is_uncountable = function(word)
 end
 
 M.pluralize = function(word)
-  if is_blank(word) then
+  if type(word) ~= "string" then
+    error("Can't pluralize " .. type(word))
+  elseif word:match("%S") == nil then
     return word
   end
 
@@ -221,7 +215,9 @@ M.pluralize = function(word)
 end
 
 M.singularize = function(word)
-  if is_blank(word) then
+  if type(word) ~= "string" then
+    error("Can't singularize " .. type(word))
+  elseif word:match("%S") == nil then
     return word
   end
 

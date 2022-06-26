@@ -7,7 +7,7 @@ name: "Test & Lint"
     branches: ["main"]
 
 jobs:
-  test:
+  Test:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
         run: |
           ./test.sh
 
-  lint:
+  Lint:
     runs-on: "ubuntu-latest"
     steps:
       - name: "StyLua"

@@ -184,6 +184,32 @@ local is_uncountable = function(word)
   return false
 end
 
+M.upcase_first = function(word)
+  return word:gsub("^%a", string.upper, 1)
+end
+
+M.downcase_first = function(word)
+  return word:gsub("^%a", string.lower, 1)
+end
+
+M.camel_case = function(word)
+  return M.downcase_first(word:gsub("_(.)", word.upper))
+end
+
+M.pascal_case = function(word)
+  return M.upcase_first(word:gsub("_(.)", word.upper))
+end
+
+M.snake_case = function(word)
+  return word:gsub("(%l)(%u)", function(lowercase_letter, uppercase_letter)
+    return lowercase_letter .. "_" .. uppercase_letter:lower()
+  end):lower()
+end
+
+M.dasherize = function(word)
+  return word:gsub("_", "-")
+end
+
 M.pluralize = function(word)
   if type(word) ~= "string" then
     error("Can't pluralize " .. type(word))
@@ -243,5 +269,25 @@ M.singularize = function(word)
 
   return singular
 end
+
+-- Aliases
+
+M.upper_first = M.upcase_first
+
+M.camelCase = M.camel_case
+M.camelize = M.camel_case
+M.camel = M.camel_case
+
+M.PascalCase = M.pascal_case
+M.pascal = M.pascal_case
+
+M.snake = M.snake_case
+M.underscore = M.snake_case
+
+M.kebab = M.dasherize
+M.dash = M.dasherize
+
+M.plural = M.pluralize
+M.singular = M.singularize
 
 return M

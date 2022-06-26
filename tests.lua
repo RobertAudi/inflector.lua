@@ -46,6 +46,23 @@ local function hr(title, sep, len)
   print(ruler)
 end
 
+-- ------------------------------------------------------------------------ --
+
+local function test(tests_or_title, tests)
+  if type(tests_or_title) == "string" then
+    hr(tests_or_title, "+")
+    print()
+
+    pcall(tests)
+  elseif type(tests_or_title) == "function" then
+    pcall(tests_or_title)
+  else
+    pcall(tests)
+  end
+
+  print()
+end
+
 local function pass(message)
   counters.assertions = counters.assertions + 1
   counters.passed = counters.passed + 1
@@ -70,6 +87,34 @@ local function fail(message, opts)
   end
 
   print(message)
+end
+
+-- ------------------------------------------------------------------------ --
+-- Assertions                                                               --
+-- ------------------------------------------------------------------------ --
+
+local function assert_eq(expression, expectation)
+  if not type(expression) == "string" then
+    error("expected the first argument of assert_eq must be a string but received a " .. type(expression))
+  end
+
+  local message = expression .. " == " .. inspect(expectation)
+
+  local ok, value = pcall(function()
+    if not expression:match("^return ") then
+      expression = "return " .. expression
+    end
+
+    return loadcode(expression, { inflector = inflector })()
+  end)
+
+  if not ok then
+    fail(message, { error = value })
+  elseif value == expectation then
+    pass(message)
+  else
+    fail(message, { result = value })
+  end
 end
 
 local function assert_error(expectation)
@@ -119,6 +164,8 @@ local function assert_singular(value, expectation)
 end
 
 -- ------------------------------------------------------------------------ --
+
+-- ------------------------------------------------------------------------ --
 -- Tests                                                                    --
 -- ------------------------------------------------------------------------ --
 
@@ -126,194 +173,268 @@ hr(nil, "~")
 hr("Lua version: " .. (type(jit) == "table" and jit.version or _VERSION), "~")
 print()
 
-hr("singularize / pluralize", "+")
-print()
+test("singularize / pluralize", function()
+  assert_error([[inflector.pluralize(nil)]])
+  assert_error([[inflector.singularize(nil)]])
 
-assert_error([[inflector.pluralize(nil)]])
-assert_error([[inflector.singularize(nil)]])
+  assert_plural("", "")
+  assert_singular("", "")
 
-assert_plural("", "")
-assert_singular("", "")
+  assert_plural("user", "users")
+  assert_plural("users", "users")
+  assert_singular("users", "user")
+  assert_singular("user", "user")
 
-assert_plural("user", "users")
-assert_plural("users", "users")
-assert_singular("users", "user")
-assert_singular("user", "user")
+  assert_plural("axis", "axes")
+  assert_plural("Axis", "Axes")
 
-assert_plural("axis", "axes")
-assert_plural("Axis", "Axes")
+  assert_plural("octopus", "octopi")
 
-assert_plural("octopus", "octopi")
--- assert_plural("Octopus", "Octopi")
+  assert_plural("alias", "aliases")
+  assert_plural("aliases", "aliases")
+  assert_plural("status", "statuses")
+  assert_plural("statuses", "statuses")
 
-assert_plural("alias", "aliases")
-assert_plural("aliases", "aliases")
-assert_plural("status", "statuses")
-assert_plural("statuses", "statuses")
+  assert_singular("aliases", "alias")
+  assert_singular("alias", "alias")
+  assert_singular("statuses", "status")
+  assert_singular("status", "status")
 
-assert_singular("aliases", "alias")
-assert_singular("alias", "alias")
-assert_singular("statuses", "status")
-assert_singular("status", "status")
+  assert_plural("bus", "busses")
+  assert_plural("busses", "busses")
+  assert_singular("buses", "bus")
+  assert_singular("busses", "bus")
+  assert_singular("bus", "bus")
 
-assert_plural("bus", "busses")
-assert_plural("busses", "busses")
-assert_singular("buses", "bus")
-assert_singular("busses", "bus")
-assert_singular("bus", "bus")
+  assert_plural("omnibus", "omnibusses")
+  assert_plural("omnibusses", "omnibusses")
+  assert_singular("omnibuses", "omnibus")
+  assert_singular("omnibusses", "omnibus")
+  assert_singular("omnibus", "omnibus")
 
-assert_plural("omnibus", "omnibusses")
-assert_plural("omnibusses", "omnibusses")
-assert_singular("omnibuses", "omnibus")
-assert_singular("omnibusses", "omnibus")
-assert_singular("omnibus", "omnibus")
+  assert_plural("tomato", "tomatoes")
+  assert_plural("tomatoes", "tomatoes")
+  assert_plural("buffalo", "buffaloes")
+  assert_plural("buffaloes", "buffaloes")
+  assert_singular("tomato", "tomato")
+  assert_singular("tomatoes", "tomato")
+  assert_singular("buffalo", "buffalo")
+  assert_singular("buffaloes", "buffalo")
 
-assert_plural("tomato", "tomatoes")
-assert_plural("tomatoes", "tomatoes")
-assert_plural("buffalo", "buffaloes")
-assert_plural("buffaloes", "buffaloes")
-assert_singular("tomato", "tomato")
-assert_singular("tomatoes", "tomato")
-assert_singular("buffalo", "buffalo")
-assert_singular("buffaloes", "buffalo")
+  assert_plural("consortium", "consortia")
+  assert_plural("consortia", "consortia")
+  assert_singular("consortia", "consortium")
+  assert_singular("consortium", "consortium")
 
-assert_plural("consortium", "consortia")
-assert_plural("consortia", "consortia")
-assert_singular("consortia", "consortium")
-assert_singular("consortium", "consortium")
+  assert_plural("analyses", "analyses")
+  assert_plural("analysis", "analyses")
+  assert_plural("psychoanalyses", "psychoanalyses")
+  assert_plural("psychoanalysis", "psychoanalyses")
 
-assert_plural("analyses", "analyses")
-assert_plural("analysis", "analyses")
-assert_plural("psychoanalyses", "psychoanalyses")
-assert_plural("psychoanalysis", "psychoanalyses")
+  assert_plural("wife", "wives")
+  assert_plural("wives", "wives")
+  assert_singular("wives", "wife")
+  assert_singular("wife", "wife")
 
-assert_plural("wife", "wives")
-assert_plural("wives", "wives")
-assert_singular("wives", "wife")
-assert_singular("wife", "wife")
+  assert_plural("elf", "elves")
+  assert_plural("elves", "elves")
+  assert_singular("elves", "elf")
+  assert_singular("elf", "elf")
 
-assert_plural("elf", "elves")
-assert_plural("elves", "elves")
-assert_singular("elves", "elf")
-assert_singular("elf", "elf")
+  assert_plural("hive", "hives")
+  assert_plural("hives", "hives")
+  assert_singular("hives", "hive")
+  assert_singular("hive", "hive")
 
-assert_plural("hive", "hives")
-assert_plural("hives", "hives")
-assert_singular("hives", "hive")
-assert_singular("hive", "hive")
+  assert_plural("beehive", "beehives")
+  assert_plural("beehives", "beehives")
+  assert_singular("beehives", "beehive")
+  assert_singular("beehive", "beehive")
 
-assert_plural("beehive", "beehives")
-assert_plural("beehives", "beehives")
-assert_singular("beehives", "beehive")
-assert_singular("beehive", "beehive")
+  assert_plural("tally", "tallies")
+  assert_plural("tallies", "tallies")
+  assert_singular("tallies", "tally")
+  assert_singular("tally", "tally")
 
-assert_plural("tally", "tallies")
-assert_plural("tallies", "tallies")
-assert_singular("tallies", "tally")
-assert_singular("tally", "tally")
+  assert_plural("colloquy", "colloquies")
+  assert_plural("colloquies", "colloquies")
+  assert_singular("colloquies", "colloquy")
+  assert_singular("colloquy", "colloquy")
 
-assert_plural("colloquy", "colloquies")
-assert_plural("colloquies", "colloquies")
-assert_singular("colloquies", "colloquy")
-assert_singular("colloquy", "colloquy")
+  assert_plural("complex", "complexes")
+  assert_plural("complexes", "complexes")
+  assert_singular("complexes", "complex")
+  assert_singular("complex", "complex")
 
-assert_plural("complex", "complexes")
-assert_plural("complexes", "complexes")
-assert_singular("complexes", "complex")
-assert_singular("complex", "complex")
+  assert_plural("porch", "porches")
+  assert_plural("porches", "porches")
+  assert_singular("porches", "porch")
+  assert_singular("porch", "porch")
 
-assert_plural("porch", "porches")
-assert_plural("porches", "porches")
-assert_singular("porches", "porch")
-assert_singular("porch", "porch")
+  assert_plural("process", "processes")
+  assert_plural("processes", "processes")
+  assert_singular("processes", "process")
+  assert_singular("process", "process")
 
-assert_plural("process", "processes")
-assert_plural("processes", "processes")
-assert_singular("processes", "process")
-assert_singular("process", "process")
+  assert_plural("dish", "dishes")
+  assert_plural("dishes", "dishes")
+  assert_singular("dishes", "dish")
+  assert_singular("dish", "dish")
 
-assert_plural("dish", "dishes")
-assert_plural("dishes", "dishes")
-assert_singular("dishes", "dish")
-assert_singular("dish", "dish")
+  assert_plural("fish", "fish")
+  assert_singular("fish", "fish")
+  assert_plural("blowfish", "blowfish")
+  assert_singular("blowfish", "blowfish")
 
-assert_plural("fish", "fish")
-assert_singular("fish", "fish")
-assert_plural("blowfish", "blowfish")
-assert_singular("blowfish", "blowfish")
+  assert_plural("deer", "deer")
+  assert_singular("deer", "deer")
+  assert_plural("raindeer", "raindeer")
+  assert_singular("raindeer", "raindeer")
 
-assert_plural("deer", "deer")
-assert_singular("deer", "deer")
-assert_plural("raindeer", "raindeer")
-assert_singular("raindeer", "raindeer")
+  assert_plural("matrix", "matrices")
+  assert_plural("matrices", "matrices")
+  assert_singular("matrices", "matrix")
+  assert_singular("matrix", "matrix")
 
-assert_plural("matrix", "matrices")
-assert_plural("matrices", "matrices")
-assert_singular("matrices", "matrix")
-assert_singular("matrix", "matrix")
+  assert_plural("index", "indices")
+  assert_plural("indices", "indices")
+  assert_singular("indices", "index")
+  assert_singular("index", "index")
 
-assert_plural("index", "indices")
-assert_plural("indices", "indices")
-assert_singular("indices", "index")
-assert_singular("index", "index")
+  assert_plural("vertex", "vertices")
+  assert_plural("vertices", "vertices")
+  assert_singular("vertices", "vertex")
+  assert_singular("vertex", "vertex")
 
-assert_plural("vertex", "vertices")
-assert_plural("vertices", "vertices")
-assert_singular("vertices", "vertex")
-assert_singular("vertex", "vertex")
+  assert_plural("mouse", "mice")
+  assert_plural("mice", "mice")
+  assert_singular("mice", "mouse")
+  assert_singular("mouse", "mouse")
 
-assert_plural("mouse", "mice")
-assert_plural("mice", "mice")
-assert_singular("mice", "mouse")
-assert_singular("mouse", "mouse")
+  assert_plural("man", "men")
+  assert_plural("men", "men")
+  assert_plural("woman", "women")
+  assert_plural("women", "women")
+  assert_singular("men", "man")
+  assert_singular("man", "man")
+  assert_singular("women", "woman")
+  assert_singular("woman", "woman")
 
-assert_plural("man", "men")
-assert_plural("men", "men")
-assert_plural("woman", "women")
-assert_plural("women", "women")
-assert_singular("men", "man")
-assert_singular("man", "man")
-assert_singular("women", "woman")
-assert_singular("woman", "woman")
+  assert_plural("ox", "oxen")
+  assert_plural("oxen", "oxen")
+  assert_singular("oxen", "ox")
+  assert_singular("ox", "ox")
 
-assert_plural("ox", "oxen")
-assert_plural("oxen", "oxen")
-assert_singular("oxen", "ox")
-assert_singular("ox", "ox")
+  assert_plural("quiz", "quizzes")
+  assert_plural("quizzes", "quizzes")
+  assert_singular("quizzes", "quiz")
+  assert_singular("quiz", "quiz")
 
-assert_plural("quiz", "quizzes")
-assert_plural("quizzes", "quizzes")
-assert_singular("quizzes", "quiz")
-assert_singular("quiz", "quiz")
+  assert_plural("pubquiz", "pubquizzes")
+  assert_plural("pubquizzes", "pubquizzes")
+  assert_singular("pubquizzes", "pubquiz")
+  assert_singular("pubquiz", "pubquiz")
 
-assert_plural("pubquiz", "pubquizzes")
-assert_plural("pubquizzes", "pubquizzes")
-assert_singular("pubquizzes", "pubquiz")
-assert_singular("pubquiz", "pubquiz")
+  print()
+  hr("Irregular words")
 
-print()
-hr("Irregular words")
+  for _, rule in pairs(inflector.rules.irregular) do
+    assert_plural(rule.plural, rule.plural)
+    assert_plural(rule.singular, rule.plural)
+    assert_singular(rule.plural, rule.singular)
+    assert_singular(rule.singular, rule.singular)
+  end
 
-for _, rule in pairs(inflector.rules.irregular) do
-  assert_plural(rule.plural, rule.plural)
-  assert_plural(rule.singular, rule.plural)
-  assert_singular(rule.plural, rule.singular)
-  assert_singular(rule.singular, rule.singular)
-end
+  hr()
+  print()
 
-hr()
-print()
+  hr("Uncountable words")
 
-hr("Uncountable words")
+  for _, word in pairs(inflector.rules.uncountable) do
+    assert_plural(word, word)
+    assert_singular(word, word)
+  end
+end)
 
-for _, word in pairs(inflector.rules.uncountable) do
-  assert_plural(word, word)
-  assert_singular(word, word)
-end
+test("upcase_first", function()
+  assert_eq([[inflector.upcase_first("foo_bar")]], "Foo_bar")
+  assert_eq([[inflector.upcase_first("foo_Bar")]], "Foo_Bar")
+  assert_eq([[inflector.upcase_first("Foo_Bar")]], "Foo_Bar")
+  assert_eq([[inflector.upcase_first("fooBar")]], "FooBar")
+  assert_eq([[inflector.upcase_first("FooBar")]], "FooBar")
+end)
+
+test("downcase_first", function()
+  assert_eq([[inflector.downcase_first("foo_bar")]], "foo_bar")
+  assert_eq([[inflector.downcase_first("foo_Bar")]], "foo_Bar")
+  assert_eq([[inflector.downcase_first("Foo_Bar")]], "foo_Bar")
+  assert_eq([[inflector.downcase_first("fooBar")]], "fooBar")
+  assert_eq([[inflector.downcase_first("FooBar")]], "fooBar")
+end)
+
+test("camel_case", function()
+  assert_eq([[inflector.camel_case("foo_bar")]], "fooBar")
+  assert_eq([[inflector.camel_case("foo_Bar")]], "fooBar")
+  assert_eq([[inflector.camel_case("Foo_Bar")]], "fooBar")
+  assert_eq([[inflector.camel_case("fooBar")]], "fooBar")
+  assert_eq([[inflector.camel_case("FooBar")]], "fooBar")
+
+  assert_eq([[inflector.camel_case("foo_bar_baz")]], "fooBarBaz")
+  assert_eq([[inflector.camel_case("foo_Bar_baz")]], "fooBarBaz")
+  assert_eq([[inflector.camel_case("Foo_Bar_baz")]], "fooBarBaz")
+  assert_eq([[inflector.camel_case("fooBar_baz")]], "fooBarBaz")
+  assert_eq([[inflector.camel_case("FooBar_baz")]], "fooBarBaz")
+end)
+
+test("pascal_case", function()
+  assert_eq([[inflector.pascal_case("foo_bar")]], "FooBar")
+  assert_eq([[inflector.pascal_case("foo_Bar")]], "FooBar")
+  assert_eq([[inflector.pascal_case("Foo_Bar")]], "FooBar")
+  assert_eq([[inflector.pascal_case("fooBar")]], "FooBar")
+  assert_eq([[inflector.pascal_case("FooBar")]], "FooBar")
+
+  assert_eq([[inflector.pascal_case("foo_bar_baz")]], "FooBarBaz")
+  assert_eq([[inflector.pascal_case("foo_Bar_baz")]], "FooBarBaz")
+  assert_eq([[inflector.pascal_case("Foo_Bar_baz")]], "FooBarBaz")
+  assert_eq([[inflector.pascal_case("fooBar_baz")]], "FooBarBaz")
+  assert_eq([[inflector.pascal_case("FooBar_baz")]], "FooBarBaz")
+end)
+
+test("snake_case", function()
+  assert_eq([[inflector.snake_case("foo_bar")]], "foo_bar")
+  assert_eq([[inflector.snake_case("foo_Bar")]], "foo_bar")
+  assert_eq([[inflector.snake_case("Foo_Bar")]], "foo_bar")
+  assert_eq([[inflector.snake_case("fooBar")]], "foo_bar")
+  assert_eq([[inflector.snake_case("FooBar")]], "foo_bar")
+
+  assert_eq([[inflector.snake_case("foo_bar_baz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("foo_Bar_baz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("Foo_Bar_baz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("fooBar_baz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("FooBar_baz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("fooBarBaz")]], "foo_bar_baz")
+  assert_eq([[inflector.snake_case("FooBarBaz")]], "foo_bar_baz")
+end)
+
+test("dasherize", function()
+  assert_eq([[inflector.dasherize("foo_bar")]], "foo-bar")
+  assert_eq([[inflector.dasherize("foo_Bar")]], "foo-Bar")
+  assert_eq([[inflector.dasherize("Foo_Bar")]], "Foo-Bar")
+  assert_eq([[inflector.dasherize("fooBar")]], "fooBar")
+  assert_eq([[inflector.dasherize("FooBar")]], "FooBar")
+
+  assert_eq([[inflector.dasherize("foo_bar_baz")]], "foo-bar-baz")
+  assert_eq([[inflector.dasherize("foo_Bar_baz")]], "foo-Bar-baz")
+  assert_eq([[inflector.dasherize("Foo_Bar_baz")]], "Foo-Bar-baz")
+  assert_eq([[inflector.dasherize("fooBar_baz")]], "fooBar-baz")
+  assert_eq([[inflector.dasherize("FooBar_baz")]], "FooBar-baz")
+  assert_eq([[inflector.dasherize("fooBarBaz")]], "fooBarBaz")
+  assert_eq([[inflector.dasherize("FooBarBaz")]], "FooBarBaz")
+end)
 
 -- ------------------------------------------------------------------------ --
 
-print("\n")
+print()
 hr(nil, "=")
 
 print(

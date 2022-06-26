@@ -20,14 +20,14 @@ jobs:
         with:
           luaVersion: "${{ matrix.luaVersion }}"
 
-      - name: "test"
+      - name: "Test"
         run: |
           ./test.sh
 
   Lint:
     runs-on: "ubuntu-latest"
     steps:
-      - name: "StyLua"
+      - name: "Lint with StyLua"
         uses: "JohnnyMorganz/stylua-action@1.0.0"
         with:
           token: "${{ secrets.STYLUA_GITHUB_TOKEN }}"

@@ -396,6 +396,10 @@ test("camel_case", function()
       "foo-Bar",
       "Foo-Bar",
 
+      "foo.bar",
+      "foo.Bar",
+      "Foo.Bar",
+
       "fooBar",
       "FooBar",
     },
@@ -446,6 +450,10 @@ test("pascal_case", function()
       "foo-Bar",
       "Foo-Bar",
 
+      "foo.bar",
+      "foo.Bar",
+      "Foo.Bar",
+
       "fooBar",
       "FooBar",
     },
@@ -494,6 +502,10 @@ test("snake_case", function()
       "foo-Bar",
       "Foo-Bar",
 
+      "foo.bar",
+      "foo.Bar",
+      "Foo.Bar",
+
       "fooBar",
       "FooBar",
     },
@@ -534,10 +546,36 @@ test("snake_case", function()
   end
 end)
 
+test("dot_case", function()
+  assert_inflection("dot_case", "foo_bar", "foo.bar")
+  assert_inflection("dot_case", "foo_Bar", "foo.Bar")
+  assert_inflection("dot_case", "Foo_Bar", "Foo.Bar")
+  assert_inflection("dot_case", "Foo_bar", "Foo.bar")
+
+  assert_inflection("dot_case", "foo-bar", "foo.bar")
+  assert_inflection("dot_case", "foo-Bar", "foo.Bar")
+  assert_inflection("dot_case", "Foo-Bar", "Foo.Bar")
+  assert_inflection("dot_case", "Foo-bar", "Foo.bar")
+
+  assert_inflection("dot_case", "foo.bar", "foo.bar")
+  assert_inflection("dot_case", "foo.Bar", "foo.Bar")
+  assert_inflection("dot_case", "Foo.Bar", "Foo.Bar")
+  assert_inflection("dot_case", "Foo.bar", "Foo.bar")
+
+  assert_inflection("dot_case", "Foobar", "Foobar")
+  assert_inflection("dot_case", "foobar", "foobar")
+  assert_inflection("dot_case", "fooBar", "foo.Bar")
+end)
+
 test("dasherize", function()
   assert_inflection("dasherize", "foo_bar", "foo-bar")
   assert_inflection("dasherize", "foo_Bar", "foo-Bar")
   assert_inflection("dasherize", "Foo_Bar", "Foo-Bar")
+
+  assert_inflection("dasherize", "foo.bar", "foo-bar")
+  assert_inflection("dasherize", "foo.Bar", "foo-Bar")
+  assert_inflection("dasherize", "Foo.Bar", "Foo-Bar")
+
   assert_inflection("dasherize", "fooBar", "fooBar")
   assert_inflection("dasherize", "FooBar", "FooBar")
 
@@ -546,6 +584,25 @@ test("dasherize", function()
   assert_inflection("dasherize", "Foo_Bar_baz", "Foo-Bar-baz")
   assert_inflection("dasherize", "fooBar_baz", "fooBar-baz")
   assert_inflection("dasherize", "FooBar_baz", "FooBar-baz")
+
+  assert_inflection("dasherize", "foo.bar_baz", "foo-bar-baz")
+  assert_inflection("dasherize", "foo.Bar_baz", "foo-Bar-baz")
+  assert_inflection("dasherize", "Foo.Bar_baz", "Foo-Bar-baz")
+
+  assert_inflection("dasherize", "foo_bar.baz", "foo-bar-baz")
+  assert_inflection("dasherize", "foo_Bar.baz", "foo-Bar-baz")
+  assert_inflection("dasherize", "Foo_Bar.baz", "Foo-Bar-baz")
+
+  assert_inflection("dasherize", "foo.bar.baz", "foo-bar-baz")
+  assert_inflection("dasherize", "foo.Bar.baz", "foo-Bar-baz")
+  assert_inflection("dasherize", "Foo.Bar.baz", "Foo-Bar-baz")
+
+  assert_inflection("dasherize", "fooBar_baz", "fooBar-baz")
+  assert_inflection("dasherize", "FooBar_baz", "FooBar-baz")
+
+  assert_inflection("dasherize", "fooBar.baz", "fooBar-baz")
+  assert_inflection("dasherize", "FooBar.baz", "FooBar-baz")
+
   assert_inflection("dasherize", "fooBarBaz", "fooBarBaz")
   assert_inflection("dasherize", "FooBarBaz", "FooBarBaz")
 end)

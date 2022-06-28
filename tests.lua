@@ -93,7 +93,7 @@ end
 -- Assertions                                                               --
 -- ------------------------------------------------------------------------ --
 
-local function assert_eq(expression, expectation)
+local function assert_expression_eq(expression, expectation)
   if not type(expression) == "string" then
     error("expected the first argument of assert_eq must be a string but received a " .. type(expression))
   end
@@ -111,6 +111,19 @@ local function assert_eq(expression, expectation)
   if not ok then
     fail(message, { error = value })
   elseif value == expectation then
+    pass(message)
+  else
+    fail(message, { result = value })
+  end
+end
+
+local function assert_inflection(inflection, actual, expected)
+  local message = "inflector." .. inflection .. "(" .. inspect(actual) .. ") == " .. inspect(expected)
+  local ok, value = pcall(inflector[inflection], actual)
+
+  if not ok then
+    fail(message, { error = value })
+  elseif value == expected then
     pass(message)
   else
     fail(message, { result = value })
@@ -357,79 +370,184 @@ test("singularize / pluralize", function()
 end)
 
 test("upcase_first", function()
-  assert_eq([[inflector.upcase_first("foo_bar")]], "Foo_bar")
-  assert_eq([[inflector.upcase_first("foo_Bar")]], "Foo_Bar")
-  assert_eq([[inflector.upcase_first("Foo_Bar")]], "Foo_Bar")
-  assert_eq([[inflector.upcase_first("fooBar")]], "FooBar")
-  assert_eq([[inflector.upcase_first("FooBar")]], "FooBar")
+  assert_inflection("upcase_first", "foo_bar", "Foo_bar")
+  assert_inflection("upcase_first", "foo_Bar", "Foo_Bar")
+  assert_inflection("upcase_first", "Foo_Bar", "Foo_Bar")
+  assert_inflection("upcase_first", "fooBar", "FooBar")
+  assert_inflection("upcase_first", "FooBar", "FooBar")
 end)
 
 test("downcase_first", function()
-  assert_eq([[inflector.downcase_first("foo_bar")]], "foo_bar")
-  assert_eq([[inflector.downcase_first("foo_Bar")]], "foo_Bar")
-  assert_eq([[inflector.downcase_first("Foo_Bar")]], "foo_Bar")
-  assert_eq([[inflector.downcase_first("fooBar")]], "fooBar")
-  assert_eq([[inflector.downcase_first("FooBar")]], "fooBar")
+  assert_inflection("downcase_first", "foo_bar", "foo_bar")
+  assert_inflection("downcase_first", "foo_Bar", "foo_Bar")
+  assert_inflection("downcase_first", "Foo_Bar", "foo_Bar")
+  assert_inflection("downcase_first", "fooBar", "fooBar")
+  assert_inflection("downcase_first", "FooBar", "fooBar")
 end)
 
 test("camel_case", function()
-  assert_eq([[inflector.camel_case("foo_bar")]], "fooBar")
-  assert_eq([[inflector.camel_case("foo_Bar")]], "fooBar")
-  assert_eq([[inflector.camel_case("Foo_Bar")]], "fooBar")
-  assert_eq([[inflector.camel_case("fooBar")]], "fooBar")
-  assert_eq([[inflector.camel_case("FooBar")]], "fooBar")
+  local words = {
+    fooBar = {
+      "foo_bar",
+      "foo_Bar",
+      "Foo_Bar",
 
-  assert_eq([[inflector.camel_case("foo_bar_baz")]], "fooBarBaz")
-  assert_eq([[inflector.camel_case("foo_Bar_baz")]], "fooBarBaz")
-  assert_eq([[inflector.camel_case("Foo_Bar_baz")]], "fooBarBaz")
-  assert_eq([[inflector.camel_case("fooBar_baz")]], "fooBarBaz")
-  assert_eq([[inflector.camel_case("FooBar_baz")]], "fooBarBaz")
+      "foo-bar",
+      "foo-Bar",
+      "Foo-Bar",
+
+      "fooBar",
+      "FooBar",
+    },
+
+    fooBarBaz = {
+      "foo_bar_baz",
+      "foo_Bar_baz",
+      "Foo_Bar_baz",
+
+      "foo-bar_baz",
+      "foo-Bar_baz",
+      "Foo-Bar_baz",
+
+      "foo_bar-baz",
+      "foo_Bar-baz",
+      "Foo_Bar-baz",
+
+      "foo-bar-baz",
+      "foo-Bar-baz",
+      "Foo-Bar-baz",
+
+      "fooBar-baz",
+      "FooBar-baz",
+
+      "fooBar_baz",
+      "FooBar_baz",
+    },
+  }
+
+  for expected, values in pairs(words) do
+    for _, actual in pairs(values) do
+      assert_inflection("camel_case", actual, expected)
+      assert_inflection("camelCase", actual, inflector.camel_case(actual))
+      assert_inflection("camelize", actual, inflector.camel_case(actual))
+      assert_inflection("camel", actual, inflector.camel_case(actual))
+    end
+  end
 end)
 
 test("pascal_case", function()
-  assert_eq([[inflector.pascal_case("foo_bar")]], "FooBar")
-  assert_eq([[inflector.pascal_case("foo_Bar")]], "FooBar")
-  assert_eq([[inflector.pascal_case("Foo_Bar")]], "FooBar")
-  assert_eq([[inflector.pascal_case("fooBar")]], "FooBar")
-  assert_eq([[inflector.pascal_case("FooBar")]], "FooBar")
+  local words = {
+    FooBar = {
+      "foo_bar",
+      "foo_Bar",
+      "Foo_Bar",
 
-  assert_eq([[inflector.pascal_case("foo_bar_baz")]], "FooBarBaz")
-  assert_eq([[inflector.pascal_case("foo_Bar_baz")]], "FooBarBaz")
-  assert_eq([[inflector.pascal_case("Foo_Bar_baz")]], "FooBarBaz")
-  assert_eq([[inflector.pascal_case("fooBar_baz")]], "FooBarBaz")
-  assert_eq([[inflector.pascal_case("FooBar_baz")]], "FooBarBaz")
+      "foo-bar",
+      "foo-Bar",
+      "Foo-Bar",
+
+      "fooBar",
+      "FooBar",
+    },
+
+    FooBarBaz = {
+      "foo_bar_baz",
+      "foo_Bar_baz",
+      "Foo_Bar_baz",
+
+      "foo-bar_baz",
+      "foo-Bar_baz",
+      "Foo-Bar_baz",
+
+      "foo_bar-baz",
+      "foo_Bar-baz",
+      "Foo_Bar-baz",
+
+      "foo-bar-baz",
+      "foo-Bar-baz",
+      "Foo-Bar-baz",
+
+      "fooBar_baz",
+      "FooBar_baz",
+
+      "fooBar-baz",
+      "FooBar-baz",
+    },
+  }
+
+  for expected, values in pairs(words) do
+    for _, actual in pairs(values) do
+      assert_inflection("pascal_case", actual, expected)
+      assert_inflection("pascal", actual, inflector.pascal_case(actual))
+    end
+  end
 end)
 
 test("snake_case", function()
-  assert_eq([[inflector.snake_case("foo_bar")]], "foo_bar")
-  assert_eq([[inflector.snake_case("foo_Bar")]], "foo_bar")
-  assert_eq([[inflector.snake_case("Foo_Bar")]], "foo_bar")
-  assert_eq([[inflector.snake_case("fooBar")]], "foo_bar")
-  assert_eq([[inflector.snake_case("FooBar")]], "foo_bar")
+  local words = {
+    foo_bar = {
+      "foo_bar",
+      "foo_Bar",
+      "Foo_Bar",
 
-  assert_eq([[inflector.snake_case("foo_bar_baz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("foo_Bar_baz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("Foo_Bar_baz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("fooBar_baz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("FooBar_baz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("fooBarBaz")]], "foo_bar_baz")
-  assert_eq([[inflector.snake_case("FooBarBaz")]], "foo_bar_baz")
+      "foo-bar",
+      "foo-Bar",
+      "Foo-Bar",
+
+      "fooBar",
+      "FooBar",
+    },
+    foo_bar_baz = {
+      "foo_bar_baz",
+      "foo_Bar_baz",
+      "Foo_Bar_baz",
+
+      "foo-bar-baz",
+      "foo-Bar-baz",
+      "Foo-Bar-baz",
+
+      "foo-bar_baz",
+      "foo-Bar_baz",
+      "Foo-Bar_baz",
+
+      "foo_bar-baz",
+      "foo_Bar-baz",
+      "Foo_Bar-baz",
+
+      "fooBar_baz",
+      "FooBar_baz",
+
+      "fooBar-baz",
+      "FooBar-baz",
+
+      "fooBarBaz",
+      "FooBarBaz",
+    },
+  }
+
+  for expected, values in pairs(words) do
+    for _, actual in pairs(values) do
+      assert_inflection("snake_case", actual, expected)
+      assert_inflection("snake", actual, inflector.snake_case(actual))
+      assert_inflection("underscore", actual, inflector.snake_case(actual))
+    end
+  end
 end)
 
 test("dasherize", function()
-  assert_eq([[inflector.dasherize("foo_bar")]], "foo-bar")
-  assert_eq([[inflector.dasherize("foo_Bar")]], "foo-Bar")
-  assert_eq([[inflector.dasherize("Foo_Bar")]], "Foo-Bar")
-  assert_eq([[inflector.dasherize("fooBar")]], "fooBar")
-  assert_eq([[inflector.dasherize("FooBar")]], "FooBar")
+  assert_inflection("dasherize", "foo_bar", "foo-bar")
+  assert_inflection("dasherize", "foo_Bar", "foo-Bar")
+  assert_inflection("dasherize", "Foo_Bar", "Foo-Bar")
+  assert_inflection("dasherize", "fooBar", "fooBar")
+  assert_inflection("dasherize", "FooBar", "FooBar")
 
-  assert_eq([[inflector.dasherize("foo_bar_baz")]], "foo-bar-baz")
-  assert_eq([[inflector.dasherize("foo_Bar_baz")]], "foo-Bar-baz")
-  assert_eq([[inflector.dasherize("Foo_Bar_baz")]], "Foo-Bar-baz")
-  assert_eq([[inflector.dasherize("fooBar_baz")]], "fooBar-baz")
-  assert_eq([[inflector.dasherize("FooBar_baz")]], "FooBar-baz")
-  assert_eq([[inflector.dasherize("fooBarBaz")]], "fooBarBaz")
-  assert_eq([[inflector.dasherize("FooBarBaz")]], "FooBarBaz")
+  assert_inflection("dasherize", "foo_bar_baz", "foo-bar-baz")
+  assert_inflection("dasherize", "foo_Bar_baz", "foo-Bar-baz")
+  assert_inflection("dasherize", "Foo_Bar_baz", "Foo-Bar-baz")
+  assert_inflection("dasherize", "fooBar_baz", "fooBar-baz")
+  assert_inflection("dasherize", "FooBar_baz", "FooBar-baz")
+  assert_inflection("dasherize", "fooBarBaz", "fooBarBaz")
+  assert_inflection("dasherize", "FooBarBaz", "FooBarBaz")
 end)
 
 -- ------------------------------------------------------------------------ --

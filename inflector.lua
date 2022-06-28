@@ -193,17 +193,17 @@ M.downcase_first = function(word)
 end
 
 M.camel_case = function(word)
-  return M.downcase_first(word:gsub("_(.)", word.upper))
+  return M.downcase_first(word:gsub("[_-](.)", word.upper))
 end
 
 M.pascal_case = function(word)
-  return M.upcase_first(word:gsub("_(.)", word.upper))
+  return M.upcase_first(word:gsub("[_-](.)", word.upper))
 end
 
 M.snake_case = function(word)
   return word:gsub("(%l)(%u)", function(lowercase_letter, uppercase_letter)
     return lowercase_letter .. "_" .. uppercase_letter:lower()
-  end):lower()
+  end):gsub("-", "_"):lower()
 end
 
 M.dasherize = function(word)

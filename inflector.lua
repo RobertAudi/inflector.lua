@@ -158,6 +158,25 @@ M.rules = {
   },
 }
 
+local split_word = function(word)
+  local prefix = word:match("^([_.-]+)")
+  local suffix = word:match("([_.-]+)$")
+
+  if prefix ~= nil then
+    word = word:gsub("^([_.-]+)", "")
+  else
+    prefix = ""
+  end
+
+  if suffix ~= nil then
+    word = word:gsub("([_.-]+)$", "")
+  else
+    suffix = ""
+  end
+
+  return { prefix = prefix, middle = word, suffix = suffix }
+end
+
 local apply = function(word, inflection)
   if type(inflection.pattern) == "table" then
     for _, pattern in pairs(inflection.pattern) do
@@ -193,21 +212,29 @@ M.downcase_first = function(word)
 end
 
 M.camel_case = function(word)
-  return M.downcase_first(word:gsub("[_-](.)", word.upper))
+  word = split_word(word)
+
+  return word.prefix .. M.downcase_first(word.middle:gsub("[_-](.)", word.middle.upper)) .. word.suffix
 end
 
 M.pascal_case = function(word)
-  return M.upcase_first(word:gsub("[_-](.)", word.upper))
+  word = split_word(word)
+
+  return word.prefix .. M.upcase_first(word.middle:gsub("[_-](.)", word.middle.upper)) .. word.suffix
 end
 
 M.snake_case = function(word)
-  return word:gsub("(%l)(%u)", function(lowercase_letter, uppercase_letter)
+  word = split_word(word)
+
+  return word.prefix .. word.middle:gsub("(%l)(%u)", function(lowercase_letter, uppercase_letter)
     return lowercase_letter .. "_" .. uppercase_letter:lower()
-  end):gsub("-", "_"):lower()
+  end):gsub("-", "_"):lower() .. word.suffix
 end
 
 M.dasherize = function(word)
-  return word:gsub("_", "-")
+  word = split_word(word)
+
+  return word.prefix .. word.middle:gsub("_", "-") .. word.suffix
 end
 
 M.pluralize = function(word)

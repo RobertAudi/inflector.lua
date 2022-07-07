@@ -276,6 +276,12 @@ M.snake_case = function(word)
   end):gsub("-", "_"):lower() .. word.suffix
 end
 
+M.dot_case = function(word)
+  return word:gsub("(%l)(%u)", function(lowercase_letter, uppercase_letter)
+    return lowercase_letter .. "." .. uppercase_letter
+  end)
+end
+
 M.dash_case = function(word)
   word = split_word(word)
 
@@ -359,6 +365,9 @@ M.pascal = M.pascal_case
 
 M.snake = M.snake_case
 M.underscore = M.snake_case
+
+M.keypath = M.dot_case
+M.key_path = M.dot_case
 
 M.kebab = M.dash_case
 M.dash = M.dash_case

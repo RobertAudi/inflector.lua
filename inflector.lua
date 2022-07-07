@@ -177,6 +177,51 @@ local split_word = function(word)
   return { prefix = prefix, middle = word, suffix = suffix }
 end
 
+local cases = { "camel_case", "snake_case", "dash_case", "pascal_case" }
+
+-- Return the first index with the given value (or nil if not found).
+local index_of = function(tbl, value)
+  for i, v in ipairs(tbl) do
+    if v == value then
+      return i
+    end
+  end
+
+  return nil
+end
+
+local detect_case = function(word)
+  word = split_word(word).middle
+
+  local result = { case = nil, index = nil, next_case = nil, next_index = nil }
+
+  if word:match("%l%u") then
+    if word:match("^%l") then
+      result.case = "camel_case"
+    else
+      result.case = "pascal_case"
+    end
+  elseif word:match("_") then
+    result.case = "snake_case"
+  elseif word:match("-") then
+    result.case = "dash_case"
+  else
+    result.case = cases[1]
+    result.index = 1
+  end
+
+  result.index = result.index or index_of(cases, result.case)
+  result.next_index = result.index + 1
+
+  if result.next_index > #cases then
+    result.next_index = 1
+  end
+
+  result.next_case = cases[result.next_index]
+
+  return result
+end
+
 local apply = function(word, inflection)
   if type(inflection.pattern) == "table" then
     for _, pattern in pairs(inflection.pattern) do
@@ -231,10 +276,14 @@ M.snake_case = function(word)
   end):gsub("-", "_"):lower() .. word.suffix
 end
 
-M.dasherize = function(word)
+M.dash_case = function(word)
   word = split_word(word)
 
   return word.prefix .. word.middle:gsub("_", "-") .. word.suffix
+end
+
+M.cycle_case = function(word)
+  return M[detect_case(word).next_case](word)
 end
 
 M.pluralize = function(word)
@@ -311,8 +360,9 @@ M.pascal = M.pascal_case
 M.snake = M.snake_case
 M.underscore = M.snake_case
 
-M.kebab = M.dasherize
-M.dash = M.dasherize
+M.kebab = M.dash_case
+M.dash = M.dash_case
+M.dasherize = M.dash_case
 
 M.plural = M.pluralize
 M.singular = M.singularize
